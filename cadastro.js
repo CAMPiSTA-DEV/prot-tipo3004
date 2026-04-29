@@ -142,10 +142,55 @@ function validarFormulario() {
   btn.disabled = !tudoValido;
 }
 
-// ===== BOTÃO =====
-window.cadastrar = function () {
+// ===== BOTÃO + SUPABASE =====
+window.cadastrar = async function () {
+
   if (btn.disabled) return;
 
+  msg.style.color = "black";
+  msg.innerText = "Criando conta...";
+
+  const email = emailInput.value;
+  const telefone = telefoneInput.value.replace(/\D/g,"");
+  const cpf = cpfInput.value;
+  const instituicao = document.getElementById("instituicao").value;
+  const senha = senhaInput.value;
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    phone: telefone,
+    password: senha
+  });
+
+  if(error){
+    msg.style.color = "red";
+    msg.innerText = error.message;
+    return;
+  }
+
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  const userId = sessionData.session.user.id;
+
+  const { error: erroDB } = await supabaseClient
+    .from("usuarios")
+    .insert({
+      id: userId,
+      email: email,
+      telefone: telefone,
+      cpf: cpf,
+      instituicao: instituicao
+    });
+
+  if(erroDB){
+    msg.style.color = "red";
+    msg.innerText = erroDB.message;
+    return;
+  }
+
   msg.style.color = "green";
-  msg.innerText = "Cadastro validado com sucesso!";
+  msg.innerText = "Conta criada! Redirecionando...";
+
+  setTimeout(() => {
+    window.location.href = "login.html";
+  }, 2000);
 };
