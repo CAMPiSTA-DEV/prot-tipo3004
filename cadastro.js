@@ -1,164 +1,39 @@
-const SUPABASE_URL = "https://dcruyugvpftdvqdcnjdl.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjcnV5dWd2cGZ0ZHZxZGNuamRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NDYxNjUsImV4cCI6MjA4ODMyMjE2NX0.ER8vVJXTYbQjteLe4iATn_nto4aoKgxMiZQ_P25y7QY";
-
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const cpfInput = document.getElementById("cpf");
-const telefoneInput = document.getElementById("telefone");
 const emailInput = document.getElementById("email");
+const telefoneInput = document.getElementById("telefone");
+const cpfInput = document.getElementById("cpf");
 const senhaInput = document.getElementById("senha");
 const confirmarSenhaInput = document.getElementById("confirmarSenha");
-const msg = document.getElementById("msg");
+const instituicaoInput = document.getElementById("instituicao");
 const btn = document.getElementById("btnCadastrar");
+const msg = document.getElementById("msg");
 
-// ===== PROTEÇÃO =====
-function contemCodigoMalicioso(texto) {
-  const padrao = /<script|<\/script>|javascript:|onerror=|onload=|<|>/gi;
-  return padrao.test(texto);
-}
-
-// ===== TELEFONE =====
-telefoneInput.addEventListener("input", () => {
-  let v = telefoneInput.value.replace(/\D/g, "").slice(0, 11);
-
-  v = v.replace(/(\d{2})(\d)/, "($1) $2");
-  v = v.replace(/(\d{5})(\d)/, "$1-$2");
-
-  telefoneInput.value = v;
-  telefoneInput.style.borderColor = v.length === 15 ? "green" : "red";
-
-  validarFormulario();
+// liberar botão quando qualquer campo mudar
+document.querySelectorAll("input,select").forEach(el=>{
+  el.addEventListener("input", validarFormulario);
+  el.addEventListener("change", validarFormulario);
 });
 
-// ===== EMAIL =====
-emailInput.addEventListener("input", () => {
-  const valido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
-  emailInput.style.borderColor = valido ? "green" : "red";
-
-  validarFormulario();
-});
-
-// ===== CPF =====
-cpfInput.addEventListener("input", () => {
-  let v = cpfInput.value.replace(/\D/g, "").slice(0, 11);
-
-  v = v.replace(/(\d{3})(\d)/, "$1.$2");
-  v = v.replace(/(\d{3})(\d)/, "$1.$2");
-  v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-
-  cpfInput.value = v;
-
-  validarFormulario();
-});
-
-// ===== CPF VALIDAÇÃO =====
-function validarCPF(cpf) {
-  cpf = cpf.replace(/\D/g, "");
-
-  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
-
-  let soma = 0;
-  for (let i = 0; i < 9; i++)
-    soma += cpf[i] * (10 - i);
-
-  let resto = (soma * 10) % 11;
-  if (resto === 10) resto = 0;
-  if (resto != cpf[9]) return false;
-
-  soma = 0;
-  for (let i = 0; i < 10; i++)
-    soma += cpf[i] * (11 - i);
-
-  resto = (soma * 10) % 11;
-  if (resto === 10) resto = 0;
-
-  return resto == cpf[10];
-}
-
-// ===== SENHA =====
-const regras = {
-  tamanho: document.getElementById("regraTamanho"),
-  maiuscula: document.getElementById("regraMaiuscula"),
-  numero: document.getElementById("regraNumero"),
-  especial: document.getElementById("regraEspecial"),
-  igual: document.getElementById("regraIgual"),
-};
-
-function validarSenhaRealtime() {
-  const s = senhaInput.value;
-  const c = confirmarSenhaInput.value;
-
-  const temTamanho = s.length >= 8;
-  const temMaiuscula = /[A-Z]/.test(s);
-  const temNumero = /\d/.test(s);
-  const temEspecial = /[!@#$%&]/.test(s);
-  const apenasPermitidos = /^[A-Za-z\d!@#$%&]+$/.test(s);
-  const iguais = s && c && s === c;
-
-  atualizar(regras.tamanho, temTamanho);
-  atualizar(regras.maiuscula, temMaiuscula);
-  atualizar(regras.numero, temNumero);
-  atualizar(regras.especial, temEspecial && apenasPermitidos);
-  atualizar(regras.igual, iguais);
-
-  validarFormulario();
-}
-
-function atualizar(el, ok) {
-  el.classList.remove("valido", "invalido");
-  el.classList.add(ok ? "valido" : "invalido");
-}
-
-senhaInput.addEventListener("input", validarSenhaRealtime);
-confirmarSenhaInput.addEventListener("input", validarSenhaRealtime);
-
-// ===== FORMULÁRIO =====
-function validarFormulario() {
+function validarFormulario(){
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
-  const telefoneValido = telefoneInput.value.length === 15;
-  const cpfValido = validarCPF(cpfInput.value);
-  const instituicao = document.getElementById("instituicao").value;
-  const senha = senhaInput.value;
-  const confirmar = confirmarSenhaInput.value;
+  const telefoneValido = telefoneInput.value.length >= 10;
+  const cpfValido = cpfInput.value.length >= 11;
+  const instituicaoOk = instituicaoInput.value !== "";
+  const senhaValida = senhaInput.value.length >= 6;
+  const senhasIguais = senhaInput.value === confirmarSenhaInput.value;
 
-  const senhaValida =
-    senha.length >= 8 &&
-    /[A-Z]/.test(senha) &&
-    /\d/.test(senha) &&
-    /[!@#$%&]/.test(senha) &&
-    /^[A-Za-z\d!@#$%&]+$/.test(senha);
-
-  const senhasIguais = senha === confirmar;
-
-  const seguro =
-    !contemCodigoMalicioso(emailInput.value) &&
-    !contemCodigoMalicioso(telefoneInput.value) &&
-    !contemCodigoMalicioso(cpfInput.value);
-
-  const tudoValido =
-    emailValido &&
-    telefoneValido &&
-    cpfValido &&
-    instituicao &&
-    senhaValida &&
-    senhasIguais &&
-    seguro;
-
-  btn.disabled = !tudoValido;
+  btn.disabled = !(emailValido && telefoneValido && cpfValido && instituicaoOk && senhaValida && senhasIguais);
 }
 
-// ===== BOTÃO + SUPABASE =====
-window.cadastrar = async function () {
+window.cadastrar = async function(){
 
-  if (btn.disabled) return;
+  if(btn.disabled) return;
 
-  msg.style.color = "black";
   msg.innerText = "Criando conta...";
 
   const email = emailInput.value;
   const telefone = telefoneInput.value.replace(/\D/g,"");
   const cpf = cpfInput.value;
-  const instituicao = document.getElementById("instituicao").value;
+  const instituicao = instituicaoInput.value;
   const senha = senhaInput.value;
 
   const { data, error } = await supabaseClient.auth.signUp({
@@ -168,8 +43,8 @@ window.cadastrar = async function () {
   });
 
   if(error){
-    msg.style.color = "red";
     msg.innerText = error.message;
+    msg.style.color="red";
     return;
   }
 
@@ -179,23 +54,19 @@ window.cadastrar = async function () {
   const { error: erroDB } = await supabaseClient
     .from("usuarios")
     .insert({
-      id: userId,
-      email: email,
-      telefone: telefone,
-      cpf: cpf,
-      instituicao: instituicao
+      id:userId,
+      email,
+      telefone,
+      cpf,
+      instituicao
     });
 
   if(erroDB){
-    msg.style.color = "red";
     msg.innerText = erroDB.message;
+    msg.style.color="red";
     return;
   }
 
-  msg.style.color = "green";
-  msg.innerText = "Conta criada! Redirecionando...";
-
-  setTimeout(() => {
-    window.location.href = "login.html";
-  }, 2000);
+  msg.style.color="green";
+  msg.innerText="Conta criada com sucesso!";
 };
