@@ -19,33 +19,34 @@ async function cadastrar(){
   const senha = document.getElementById("senha").value;
   const confirmarSenha = document.getElementById("confirmarSenha").value;
 
-  // 🔐 VALIDAÇÃO DE SENHA
   if(senha !== confirmarSenha){
-    document.getElementById("msg").innerText = "As senhas não coincidem";
+    msg.innerText = "As senhas não coincidem";
     return;
   }
-  if(!email || !telefone || !cpf || !instituicao || !senha){
-  document.getElementById("msg").innerText = "Preencha todos os campos";
-  return;
-}
 
+  if(!email || !telefone || !cpf || !instituicao || !senha){
+    msg.innerText = "Preencha todos os campos";
+    return;
+  }
+
+  // cria usuário no AUTH
   const { data, error } = await supabaseClient.auth.signUp({
-    phone: telefone,
     email: email,
+    phone: telefone,
     password: senha
   });
 
   console.log("RESPOSTA SIGNUP:", data, error);
 
   if(error){
-    document.getElementById("msg").innerText = error.message;
+    msg.innerText = error.message;
     return; 
   }
 
-  // ⚠️ esperar sessão ficar ativa
-  const { data: sessionData } = await supabaseClient.auth.getSession();
-  const userId = sessionData.session.user.id;
+  // 🔑 PEGA O ID DIRETO DO SIGNUP
+  const userId = data.user.id;
 
+  // salva dados extras na tabela usuarios
   const { error: erroDB } = await supabaseClient
     .from("usuarios")
     .insert({
@@ -56,14 +57,13 @@ async function cadastrar(){
       instituicao: instituicao
     });
 
-  document.getElementById("msg").innerText =
-    erroDB ? erroDB.message : "Conta criada. Redirecionando...";
+  msg.innerText = erroDB ? erroDB.message : "Conta criada. Verifique seu email!";
 
-    //tempo de espera após criar a conta
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 2000);
+  setTimeout(() => {
+    window.location.href = "login.html";
+  }, 2000);
 }
+//teste
 
 // ================= LOGIN =================
 async function login(){
