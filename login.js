@@ -1,3 +1,8 @@
+const SUPABASE_URL = "https://dcruyugvpftdvqdcnjdl.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjcnV5dWd2cGZ0ZHZxZGNuamRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NDYxNjUsImV4cCI6MjA4ODMyMjE2NX0.ER8vVJXTYbQjteLe4iATn_nto4aoKgxMiZQ_P25y7QY";
+
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const loginInput = document.getElementById("login");
 const senhaInput = document.getElementById("senha");
 const btnEntrar = document.getElementById("btnEntrar");
