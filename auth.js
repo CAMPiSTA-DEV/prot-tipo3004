@@ -63,7 +63,7 @@ async function cadastrar(){
     window.location.href = "login.html";
   }, 2000);
 }
-//teste dnv
+//commit deu certin
 
 // ================= LOGIN =================
 async function login(){
