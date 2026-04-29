@@ -63,7 +63,7 @@ async function cadastrar(){
     window.location.href = "login.html";
   }, 2000);
 }
-//teste
+//teste dnv
 
 // ================= LOGIN =================
 async function login(){
