@@ -1,9 +1,3 @@
-const SUPABASE_URL = "https://dcruyugvpftdvqdcnjdl.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjcnV5dWd2cGZ0ZHZxZGNuamRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NDYxNjUsImV4cCI6MjA4ODMyMjE2NX0.ER8vVJXTYbQjteLe4iATn_nto4aoKgxMiZQ_P25y7QY";
-
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-
 const emailInput = document.getElementById("email");
 const telefoneInput = document.getElementById("telefone");
 const cpfInput = document.getElementById("cpf");
@@ -13,44 +7,41 @@ const instituicaoInput = document.getElementById("instituicao");
 const btn = document.getElementById("btnCadastrar");
 const msg = document.getElementById("msg");
 
-// liberar botão quando qualquer campo mudar
-document.querySelectorAll("input,select").forEach(el=>{
+document.querySelectorAll("input,select").forEach(el => {
   el.addEventListener("input", validarFormulario);
   el.addEventListener("change", validarFormulario);
 });
 
-function validarFormulario(){
+function validarFormulario() {
   const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value);
   const telefoneValido = telefoneInput.value.length >= 10;
   const cpfValido = cpfInput.value.length >= 11;
   const instituicaoOk = instituicaoInput.value !== "";
-  const senhaValida = senhaInput.value.length >= 6;
+  const senhaValida = senhaInput.value.length >= 8; // ✅ corrigido para 8
   const senhasIguais = senhaInput.value === confirmarSenhaInput.value;
 
   btn.disabled = !(emailValido && telefoneValido && cpfValido && instituicaoOk && senhaValida && senhasIguais);
 }
 
-window.cadastrar = async function(){
-
-  if(btn.disabled) return;
-
+window.cadastrar = async function () {
+  if (btn.disabled) return;
   msg.innerText = "Criando conta...";
 
   const email = emailInput.value;
-  const telefone = telefoneInput.value.replace(/\D/g,"");
+  const telefone = telefoneInput.value.replace(/\D/g, "");
   const cpf = cpfInput.value;
   const instituicao = instituicaoInput.value;
   const senha = senhaInput.value;
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email: email,
+  const { data, error } = await supabaseClient.auth.signUp({ // ✅ supabaseClient
+    email,
     phone: telefone,
     password: senha
   });
 
-  if(error){
+  if (error) {
     msg.innerText = error.message;
-    msg.style.color="red";
+    msg.style.color = "red";
     return;
   }
 
@@ -59,22 +50,16 @@ window.cadastrar = async function(){
 
   const { error: erroDB } = await supabaseClient
     .from("usuarios")
-    .insert({
-      id:userId,
-      email,
-      telefone,
-      cpf,
-      instituicao
-    });
+    .insert({ id: userId, email, telefone, cpf, instituicao });
 
-  if(erroDB){
+  if (erroDB) {
     msg.innerText = erroDB.message;
-    msg.style.color="red";
+    msg.style.color = "red";
     return;
   }
 
-  msg.style.color="green";
-  msg.innerText="Conta criada com sucesso!";
+  msg.style.color = "green";
+  msg.innerText = "Conta criada com sucesso!";
 };
 
 validarFormulario();
